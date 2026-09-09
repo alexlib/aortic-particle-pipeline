@@ -1,0 +1,84 @@
+{
+  "filtration": {
+    "min_length": 10,
+    "max_length": 1200,
+    "minimum_speed_um_per_frame": 0.0,
+    "maximum_speed_um_per_frame": 1300.0
+  },
+  "eulerian": {
+    "grid_shape": [15, 15, 8],
+    "minimum_samples": 15,
+    "window_frames": 500,
+    "step_frames": 100
+  },
+  "flowmap": {
+    "lag_frames": 1,
+    "k_min": 20,
+    "k_max": 150,
+    "bandwidth_k": 20,
+    "bandwidth_scale_factor": 1.0,
+    "truncation_multiplier": 3.0,
+    "regularization_lambda": 1e-6,
+    "fallback_expand_factor": 1.5,
+    "fallback_max_expansions": 3,
+    "fallback_regularization_multiplier": 10.0,
+    "minimum_distinct_tracks": 8,
+    "minimum_effective_sample_size": 10.0,
+    "maximum_condition_number": 1e8,
+    "extrapolation_factor": 3.0,
+    "minimum_confidence": 0.2,
+    "maximum_step_displacement_factor": 10.0,
+    "crossing_bisection_iterations": 30
+  },
+  "extension": {
+    "maximum_duration_frames": 5000,
+    "workers": 4,
+    "chunk_size": 300
+  },
+  "cohorts": {
+    "sample_tracks_per_large_cohort": 5000,
+    "random_seed": 0,
+    "enabled_outputs": [
+      "chamber_to_exit",
+      "line_to_line",
+      "chamber_stasis",
+      "line_conditions"
+    ],
+    "line_rules": [
+      {
+        "id": "cond1",
+        "name": "condition1_cross_A_and_B",
+        "all_of": ["cross:line_1", "cross:line_2"],
+        "any_of": [],
+        "exclude_crossing": true
+      },
+      {
+        "id": "cond2",
+        "name": "condition2_stuck_and_crosses",
+        "all_of": ["no_exit"],
+        "any_of": ["cross:line_1", "cross:line_2"],
+        "exclude_crossing": true
+      },
+      {
+        "id": "cond3",
+        "name": "condition3_first_frame",
+        "all_of": ["first_frame"],
+        "any_of": ["cross:line_1", "cross:line_2", "no_exit"],
+        "exclude_crossing": true
+      }
+    ]
+  },
+  "validation": {
+    "minimum_track_length": 200,
+    "number_of_tracks": 300,
+    "truncation_fractions": [0.25, 0.5, 0.75],
+    "maximum_duration_frames": 1200,
+    "random_seed": 0
+  },
+  "geometry": {
+    "roi": "geometry/roi.json",
+    "initial_chamber": "geometry/initial_chamber.json",
+    "crossing_lines": "geometry/crossing_lines.json",
+    "exclusion_lines": "geometry/exclusion_lines.json"
+  }
+}

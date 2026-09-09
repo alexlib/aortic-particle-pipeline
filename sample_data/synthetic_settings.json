@@ -1,0 +1,53 @@
+{
+  "filtration": {
+    "min_length": 20,
+    "max_length": 200,
+    "minimum_speed_um_per_frame": 0.0,
+    "maximum_speed_um_per_frame": 1300.0
+  },
+  "eulerian": {
+    "grid_shape": [
+      6,
+      6,
+      4
+    ],
+    "minimum_samples": 3,
+    "window_frames": 30,
+    "step_frames": 10
+  },
+  "flowmap": {
+    "k_min": 8,
+    "k_max": 40,
+    "bandwidth_k": 8,
+    "minimum_distinct_tracks": 4,
+    "minimum_effective_sample_size": 4.0,
+    "minimum_confidence": 0.05
+  },
+  "extension": {
+    "maximum_duration_frames": 40,
+    "workers": 1,
+    "chunk_size": 16
+  },
+  "cohorts": {
+    "sample_tracks_per_large_cohort": 500,
+    "random_seed": 0,
+    "enabled_outputs": [
+      "full_paths",
+      "chamber_to_exit",
+      "line_to_line",
+      "chamber_stasis",
+      "line_conditions"
+    ]
+  },
+  "validation": {
+    "minimum_track_length": 40,
+    "number_of_tracks": 6,
+    "truncation_fractions": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "maximum_duration_frames": 100,
+    "random_seed": 0
+  }
+}

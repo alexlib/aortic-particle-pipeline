@@ -1,0 +1,12 @@
+{
+  "attributes": {
+    "description": "Deterministic aortic-phantom pipeline validation data",
+    "position_units": "m",
+    "time_units": "frame",
+    "seed": 7,
+    "n_tracks": 64,
+    "points_per_track": 80
+  },
+  "zarr_format": 3,
+  "node_type": "group"
+}
