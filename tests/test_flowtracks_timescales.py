@@ -62,6 +62,16 @@ def test_snapshot_time_scales(scene):
     assert np.isfinite(result["advection_time"])
 
 
+def test_snapshot_residence_ages(scene):
+    sc, _ = scene
+    snap = next(sc.iter_frames())
+    trajids = snap.trajid().tolist()
+    entry_times = {tid: 0.0 for tid in trajids}
+    result = snapshot_time_scales(snap, length_scale=2.0, entry_times=entry_times)
+    assert "residence_ages" in result
+    assert len(result["residence_ages"]) == len(trajids)
+
+
 def test_scene_trajectory_time_scales(scene):
     sc, _ = scene
     rows = list(scene_trajectory_time_scales(sc, length_scale=2.0))
@@ -74,3 +84,10 @@ def test_scene_frame_time_scales(scene):
     rows = list(scene_frame_time_scales(sc, length_scale=2.0, volume=8.0))
     assert len(rows) >= 1
     assert all("time" in r and "turnover_time" in r for r in rows)
+
+
+def test_scene_frame_time_scales_no_volume(scene):
+    sc, _ = scene
+    rows = list(scene_frame_time_scales(sc, length_scale=2.0))
+    assert len(rows) >= 1
+    assert all("turnover_time" not in r for r in rows)
