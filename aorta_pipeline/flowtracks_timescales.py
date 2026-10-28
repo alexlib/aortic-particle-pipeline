@@ -9,22 +9,23 @@ objects without Flowtracks.
 
 from __future__ import annotations
 
-from typing import Any, Iterator
+from collections.abc import Iterator
+from typing import Any
 
 import numpy as np
 
 from .timescales import (
+    frame_advection_time,
+    frame_diffusion_time,
+    frame_residence_ages,
+    frame_turnover_time,
+    residence_time,
     trajectory_advection_time,
+    trajectory_age,
     trajectory_diffusion_coefficient,
     trajectory_diffusion_time,
     trajectory_duration,
-    residence_time,
     transit_time,
-    trajectory_age,
-    frame_advection_time,
-    frame_diffusion_time,
-    frame_turnover_time,
-    frame_residence_ages,
 )
 
 
@@ -48,9 +49,13 @@ def _require_flowtracks():
     return flowtracks
 
 
-def trajectory_time_scales(traj: Any, length_scale: float, *,
-                          entry_time: float | None = None,
-                          exit_time: float | None = None) -> dict[str, float]:
+def trajectory_time_scales(
+    traj: Any,
+    length_scale: float,
+    *,
+    entry_time: float | None = None,
+    exit_time: float | None = None,
+) -> dict[str, float]:
     """Compute all basic time scales for one Flowtracks ``Trajectory``.
 
     Returns a dictionary with ``duration``, ``residence_time``, ``transit_time``,
@@ -72,10 +77,14 @@ def trajectory_time_scales(traj: Any, length_scale: float, *,
     }
 
 
-def snapshot_time_scales(snapshot: Any, length_scale: float, *,
-                         volume: float | None = None,
-                         cross_sectional_area: float | None = None,
-                         entry_times: dict[Any, float] | None = None) -> dict[str, Any]:
+def snapshot_time_scales(
+    snapshot: Any,
+    length_scale: float,
+    *,
+    volume: float | None = None,
+    cross_sectional_area: float | None = None,
+    entry_times: dict[Any, float] | None = None,
+) -> dict[str, Any]:
     """Compute bulk time scales for one Flowtracks ``ParticleSnapshot``.
 
     Returns advection, diffusion and (if ``volume`` is given) turnover times,
@@ -88,7 +97,9 @@ def snapshot_time_scales(snapshot: Any, length_scale: float, *,
     }
     if volume is not None:
         result["turnover_time"] = frame_turnover_time(
-            snapshot, volume, length_scale=length_scale,
+            snapshot,
+            volume,
+            length_scale=length_scale,
             cross_sectional_area=cross_sectional_area,
         )
     if entry_times is not None:
@@ -96,7 +107,9 @@ def snapshot_time_scales(snapshot: Any, length_scale: float, *,
     return result
 
 
-def scene_trajectory_time_scales(scene: Any, length_scale: float) -> Iterator[dict[str, Any]]:
+def scene_trajectory_time_scales(
+    scene: Any, length_scale: float
+) -> Iterator[dict[str, Any]]:
     """Yield per-trajectory time scales for every trajectory in a scene."""
     _require_flowtracks()
     for traj in scene.iter_trajectories():
@@ -106,9 +119,13 @@ def scene_trajectory_time_scales(scene: Any, length_scale: float) -> Iterator[di
         }
 
 
-def scene_frame_time_scales(scene: Any, length_scale: float, *,
-                            volume: float | None = None,
-                            cross_sectional_area: float | None = None) -> Iterator[dict[str, Any]]:
+def scene_frame_time_scales(
+    scene: Any,
+    length_scale: float,
+    *,
+    volume: float | None = None,
+    cross_sectional_area: float | None = None,
+) -> Iterator[dict[str, Any]]:
     """Yield per-frame bulk time scales for every frame in a scene."""
     _require_flowtracks()
     for snap in scene.iter_frames():
@@ -116,7 +133,9 @@ def scene_frame_time_scales(scene: Any, length_scale: float, *,
         yield {
             "time": float(snap.time()),
             **snapshot_time_scales(
-                snap, length_scale, volume=volume,
+                snap,
+                length_scale,
+                volume=volume,
                 cross_sectional_area=cross_sectional_area,
                 entry_times=entry_times,
             ),
@@ -125,8 +144,8 @@ def scene_frame_time_scales(scene: Any, length_scale: float, *,
 
 __all__ = [
     "flowtracks_available",
-    "trajectory_time_scales",
-    "snapshot_time_scales",
-    "scene_trajectory_time_scales",
     "scene_frame_time_scales",
+    "scene_trajectory_time_scales",
+    "snapshot_time_scales",
+    "trajectory_time_scales",
 ]

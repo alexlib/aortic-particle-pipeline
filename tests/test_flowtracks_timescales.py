@@ -5,15 +5,15 @@ import pytest
 
 flowtracks = pytest.importorskip("flowtracks")
 from flowtracks.io import save_zarr_trajectories
-from flowtracks.zarr_scene import ZarrScene
 from flowtracks.trajectory import Trajectory
+from flowtracks.zarr_scene import ZarrScene
 
 from aorta_pipeline.flowtracks_timescales import (
     flowtracks_available,
-    trajectory_time_scales,
-    snapshot_time_scales,
-    scene_trajectory_time_scales,
     scene_frame_time_scales,
+    scene_trajectory_time_scales,
+    snapshot_time_scales,
+    trajectory_time_scales,
 )
 
 

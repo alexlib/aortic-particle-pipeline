@@ -5,28 +5,30 @@ import pytest
 
 from aorta_pipeline.synthetic_timescales import (
     GroundTruth,
-    uniform_translation_trajectories,
     brownian_trajectory,
     poiseuille_like_frame,
     turnover_frame,
+    uniform_translation_trajectories,
 )
 from aorta_pipeline.timescales import (
+    frame_advection_time,
+    frame_diffusion_time,
+    frame_residence_ages,
+    frame_turnover_time,
     residence_time,
-    transit_time,
     trajectory_advection_time,
     trajectory_diffusion_coefficient,
     trajectory_diffusion_time,
-    frame_advection_time,
-    frame_diffusion_time,
-    frame_turnover_time,
-    frame_residence_ages,
+    transit_time,
 )
 
 
 def test_uniform_translation_residence_and_advection():
     for speed in (0.5, 1.0, 2.5, 7.0):
         for length in (3.0, 10.0, 21.0):
-            df, gt = uniform_translation_trajectories(speed=speed, length=length, seed=1)
+            df, gt = uniform_translation_trajectories(
+                speed=speed, length=length, seed=1
+            )
             one = df[df["track_id"] == 0].reset_index(drop=True)
             rt = residence_time(one)
             assert rt == pytest.approx(gt.residence_time, rel=1e-9, abs=1e-9)
@@ -37,9 +39,9 @@ def test_uniform_translation_residence_and_advection():
 def test_uniform_translation_transit_time():
     df, gt = uniform_translation_trajectories(speed=3.0, length=12.0, seed=2)
     one = df[df["track_id"] == 0].reset_index(drop=True)
-    assert transit_time(one, entry_time=0.0, exit_time=gt.transit_time) == pytest.approx(
-        gt.transit_time, rel=1e-9
-    )
+    assert transit_time(
+        one, entry_time=0.0, exit_time=gt.transit_time
+    ) == pytest.approx(gt.transit_time, rel=1e-9)
 
 
 def test_brownian_diffusion_coefficient_recovery():
@@ -51,7 +53,7 @@ def test_brownian_diffusion_coefficient_recovery():
 
 
 def test_brownian_diffusion_time():
-    df, gt = brownian_trajectory(n_steps=5000, diffusivity=0.7, seed=3)
+    df, _gt = brownian_trajectory(n_steps=5000, diffusivity=0.7, seed=3)
     D = trajectory_diffusion_coefficient(df, dims=3)
     tau = trajectory_diffusion_time(df, length_scale=1.0)
     assert tau == pytest.approx(1.0 / D, rel=0.05)

@@ -27,7 +27,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-
 # ---------------------------------------------------------------------------
 # Literature-cited scalar definitions
 # ---------------------------------------------------------------------------
@@ -109,7 +108,9 @@ def _trajectory_arrays(obj: Any):
     if isinstance(obj, dict):
         time = np.asarray(obj["time"], dtype=float)
         pos = np.asarray(obj["pos"], dtype=float)
-        velocity = np.asarray(obj["velocity"], dtype=float) if "velocity" in obj else None
+        velocity = (
+            np.asarray(obj["velocity"], dtype=float) if "velocity" in obj else None
+        )
         return time, pos, velocity
 
     time = _call_or_attr(obj, "time")
@@ -132,9 +133,17 @@ def _frame_arrays(obj: Any):
     """Return ``(time_scalar, trajids, pos, velocity_or_None)`` for a frame."""
     if isinstance(obj, pd.DataFrame):
         time_values = obj["time"].to_numpy() if "time" in obj else None
-        time_scalar = float(time_values[0]) if time_values is not None and len(time_values) else float("nan")
-        trajids = obj["trajid"].to_numpy() if "trajid" in obj else (
-            obj["track_id"].to_numpy() if "track_id" in obj else np.arange(len(obj))
+        time_scalar = (
+            float(time_values[0])
+            if time_values is not None and len(time_values)
+            else float("nan")
+        )
+        trajids = (
+            obj["trajid"].to_numpy()
+            if "trajid" in obj
+            else (
+                obj["track_id"].to_numpy() if "track_id" in obj else np.arange(len(obj))
+            )
         )
         pos = obj[["x", "y", "z"]].to_numpy(float)
         velocity = None
@@ -149,7 +158,9 @@ def _frame_arrays(obj: Any):
         default_ids = np.arange(len(obj.get("pos", [])))
         trajids = np.asarray(obj.get("trajid", obj.get("trajids", default_ids)))
         pos = np.asarray(obj["pos"], dtype=float)
-        velocity = np.asarray(obj["velocity"], dtype=float) if "velocity" in obj else None
+        velocity = (
+            np.asarray(obj["velocity"], dtype=float) if "velocity" in obj else None
+        )
         return time_scalar, trajids, pos, velocity
 
     time = _call_or_attr(obj, "time")
@@ -158,7 +169,11 @@ def _frame_arrays(obj: Any):
     velocity = _call_or_attr(obj, "velocity")
     if pos is None:
         raise TypeError("frame object must expose 'pos'")
-    time_scalar = float(np.asarray(time).reshape(-1)[0]) if time is not None and np.size(time) else float("nan")
+    time_scalar = (
+        float(np.asarray(time).reshape(-1)[0])
+        if time is not None and np.size(time)
+        else float("nan")
+    )
     if trajids is None:
         trajids = np.arange(len(np.asarray(pos)))
     pos = np.asarray(pos, dtype=float)
@@ -178,8 +193,9 @@ def _entry_time_of(points) -> float:
     return float(time[0])
 
 
-def _exit_time_of(points, *, status_column: str = "status",
-                  roi_state_column: str = "roi_state") -> float:
+def _exit_time_of(
+    points, *, status_column: str = "status", roi_state_column: str = "roi_state"
+) -> float:
     """Exit time of an extended track.
 
     Uses an explicit ``status``/``roi_state`` if present in a DataFrame;
@@ -197,7 +213,7 @@ def _exit_time_of(points, *, status_column: str = "status",
                 return float(points.loc[mask, "time"].iloc[0])
         # No exit marker: residence/exit time is unknown (not just track span).
         return float("nan")
-    time, _, _ = _trajectory_arrays(points)
+    _time, _, _ = _trajectory_arrays(points)
     return float("nan")
 
 
@@ -229,10 +245,14 @@ def _speeds(points) -> np.ndarray:
 # ---------------------------------------------------------------------------
 
 
-def residence_time(points, *, entry_time: float | None = None,
-                   exit_time: float | None = None,
-                   status_column: str = "status",
-                   roi_state_column: str = "roi_state") -> float:
+def residence_time(
+    points,
+    *,
+    entry_time: float | None = None,
+    exit_time: float | None = None,
+    status_column: str = "status",
+    roi_state_column: str = "roi_state",
+) -> float:
     """Residence (exit) time of one trajectory inside the control volume.
 
     ``t_res = t_exit - t_entry``.  For a track that never exits (censored),
@@ -245,8 +265,9 @@ def residence_time(points, *, entry_time: float | None = None,
     if entry_time is None:
         entry_time = _entry_time_of(points)
     if exit_time is None:
-        exit_time = _exit_time_of(points, status_column=status_column,
-                                 roi_state_column=roi_state_column)
+        exit_time = _exit_time_of(
+            points, status_column=status_column, roi_state_column=roi_state_column
+        )
     entry_time = float(entry_time)
     exit_time = float(exit_time)
     if not np.isfinite(entry_time) or not np.isfinite(exit_time):
@@ -255,10 +276,14 @@ def residence_time(points, *, entry_time: float | None = None,
     return value if value >= 0 else float("nan")
 
 
-def transit_time(points, *, entry_time: float | None = None,
-                 exit_time: float | None = None,
-                 status_column: str = "status",
-                 roi_state_column: str = "roi_state") -> float:
+def transit_time(
+    points,
+    *,
+    entry_time: float | None = None,
+    exit_time: float | None = None,
+    status_column: str = "status",
+    roi_state_column: str = "roi_state",
+) -> float:
     """Transient / transit time between two sections or markers.
 
     ``t_transit = t_end - t_start``.  Unlike residence time, the two markers
@@ -272,8 +297,9 @@ def transit_time(points, *, entry_time: float | None = None,
     if entry_time is None:
         entry_time = _entry_time_of(points)
     if exit_time is None:
-        exit_time = _exit_time_of(points, status_column=status_column,
-                                 roi_state_column=roi_state_column)
+        exit_time = _exit_time_of(
+            points, status_column=status_column, roi_state_column=roi_state_column
+        )
     entry_time = float(entry_time)
     exit_time = float(exit_time)
     if not np.isfinite(entry_time) or not np.isfinite(exit_time):
@@ -303,15 +329,16 @@ def trajectory_advection_time(points, length_scale: float) -> float:
     return advection_time_scale(length_scale, float(np.mean(speeds)))
 
 
-def trajectory_diffusion_coefficient(points, *, max_lag: int | None = None,
-                                    dims: int = 3) -> float:
+def trajectory_diffusion_coefficient(
+    points, *, max_lag: int | None = None, dims: int = 3
+) -> float:
     """Lagrangian (eddy) diffusivity from the variance of per-frame increments.
 
     ``D = Var(dx - <dx>) / (2 * dims * <dt>)``.  Removing the mean increment
     separates turbulent dispersion from the mean advection.  Literature:
     Taylor (1922), "Diffusion by continuous movements"; Einstein (1905).
     """
-    time, pos, velocity = _trajectory_arrays(points)
+    time, pos, _velocity = _trajectory_arrays(points)
     if len(pos) < 3:
         return float("nan")
     increments = np.diff(pos, axis=0)
@@ -329,9 +356,9 @@ def trajectory_diffusion_coefficient(points, *, max_lag: int | None = None,
     return msd_inc / denom
 
 
-def trajectory_diffusion_time(points, length_scale: float, *,
-                              max_lag: int | None = None,
-                              dims: int = 3) -> float:
+def trajectory_diffusion_time(
+    points, length_scale: float, *, max_lag: int | None = None, dims: int = 3
+) -> float:
     """Per-trajectory diffusion time, ``tau_diff = L^2 / D_track``.
 
     Literature: Taylor (1953); Fischer et al. (1979).
@@ -430,8 +457,13 @@ def frame_diffusion_time(frame, length_scale: float) -> float:
     return diffusion_time_scale(length_scale, diffusivity)
 
 
-def frame_turnover_time(frame, volume: float, *, length_scale: float,
-                       cross_sectional_area: float | None = None) -> float:
+def frame_turnover_time(
+    frame,
+    volume: float,
+    *,
+    length_scale: float,
+    cross_sectional_area: float | None = None,
+) -> float:
     """Instantaneous turnover time of the control volume.
 
     ``tau_turn = V / Q``.  If a cross-sectional area is given,
@@ -444,7 +476,11 @@ def frame_turnover_time(frame, volume: float, *, length_scale: float,
         return float("nan")
     mean_speed = float(np.mean(np.linalg.norm(velocity, axis=1)))
     if cross_sectional_area is not None and cross_sectional_area > 0:
-        normal = velocity[:, 0] if velocity.shape[1] >= 1 else np.linalg.norm(velocity, axis=1)
+        normal = (
+            velocity[:, 0]
+            if velocity.shape[1] >= 1
+            else np.linalg.norm(velocity, axis=1)
+        )
         flow_rate = float(cross_sectional_area) * float(np.mean(normal))
     else:
         if length_scale <= 0 or not np.isfinite(mean_speed):
@@ -469,17 +505,17 @@ def _is_int(value: Any) -> bool:
 __all__ = [
     "advection_time_scale",
     "diffusion_time_scale",
-    "turnover_time",
-    "residence_time",
-    "transit_time",
-    "trajectory_duration",
-    "trajectory_advection_time",
-    "trajectory_diffusion_coefficient",
-    "trajectory_diffusion_time",
-    "trajectory_age",
-    "frame_residence_ages",
-    "frame_transit_times",
     "frame_advection_time",
     "frame_diffusion_time",
+    "frame_residence_ages",
+    "frame_transit_times",
     "frame_turnover_time",
+    "residence_time",
+    "trajectory_advection_time",
+    "trajectory_age",
+    "trajectory_diffusion_coefficient",
+    "trajectory_diffusion_time",
+    "trajectory_duration",
+    "transit_time",
+    "turnover_time",
 ]

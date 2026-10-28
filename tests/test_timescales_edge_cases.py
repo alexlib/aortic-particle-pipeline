@@ -9,18 +9,17 @@ import pytest
 from aorta_pipeline.timescales import (
     advection_time_scale,
     diffusion_time_scale,
-    turnover_time,
-    residence_time,
-    transit_time,
-    trajectory_duration,
-    trajectory_advection_time,
-    trajectory_diffusion_coefficient,
-    trajectory_diffusion_time,
-    trajectory_age,
-    frame_residence_ages,
     frame_advection_time,
     frame_diffusion_time,
+    frame_residence_ages,
     frame_turnover_time,
+    residence_time,
+    trajectory_advection_time,
+    trajectory_age,
+    trajectory_diffusion_coefficient,
+    trajectory_duration,
+    transit_time,
+    turnover_time,
 )
 
 
@@ -44,32 +43,38 @@ def test_short_trajectories():
 
 
 def test_residence_time_censored_and_roi_state():
-    df = pd.DataFrame({
-        "time": [0, 1, 2],
-        "x": [0.0, 1.0, 2.0],
-        "y": 0.0,
-        "z": 0.0,
-        "status": ["continued", "continued", "insufficient_lagrangian_support"],
-    })
+    df = pd.DataFrame(
+        {
+            "time": [0, 1, 2],
+            "x": [0.0, 1.0, 2.0],
+            "y": 0.0,
+            "z": 0.0,
+            "status": ["continued", "continued", "insufficient_lagrangian_support"],
+        }
+    )
     assert math.isnan(residence_time(df))
-    df2 = pd.DataFrame({
-        "time": [0, 1, 2],
-        "x": [0.0, 1.0, 2.0],
-        "y": 0.0,
-        "z": 0.0,
-        "roi_state": ["inside", "inside", "exit"],
-    })
+    df2 = pd.DataFrame(
+        {
+            "time": [0, 1, 2],
+            "x": [0.0, 1.0, 2.0],
+            "y": 0.0,
+            "z": 0.0,
+            "roi_state": ["inside", "inside", "exit"],
+        }
+    )
     assert residence_time(df2) == 2.0
 
 
 def test_residence_time_custom_columns():
-    df = pd.DataFrame({
-        "time": [0, 1, 2],
-        "x": [0.0, 1.0, 2.0],
-        "y": 0.0,
-        "z": 0.0,
-        "state": ["inside", "inside", "exit"],
-    })
+    df = pd.DataFrame(
+        {
+            "time": [0, 1, 2],
+            "x": [0.0, 1.0, 2.0],
+            "y": 0.0,
+            "z": 0.0,
+            "state": ["inside", "inside", "exit"],
+        }
+    )
     assert residence_time(df, status_column="state") == 2.0
 
 
@@ -102,46 +107,53 @@ def test_dict_adapter():
 
 
 def test_frame_residence_ages_missing_entry():
-    frame = pd.DataFrame({
-        "time": [5.0, 5.0],
-        "trajid": [1, 2],
-        "x": [0.0, 1.0],
-        "y": 0.0,
-        "z": 0.0,
-    })
+    frame = pd.DataFrame(
+        {
+            "time": [5.0, 5.0],
+            "trajid": [1, 2],
+            "x": [0.0, 1.0],
+            "y": 0.0,
+            "z": 0.0,
+        }
+    )
     ages = frame_residence_ages(frame, {1: 2.0})
     assert ages[0] == 3.0
     assert math.isnan(ages[1])
 
 
 def test_frame_diffusion_zero_fluctuation():
-    frame = pd.DataFrame({
-        "time": [1.0, 1.0],
-        "trajid": [1, 2],
-        "x": [0.0, 1.0],
-        "y": 0.0,
-        "z": 0.0,
-        "vx": [2.0, 2.0],
-        "vy": 0.0,
-        "vz": 0.0,
-    })
+    frame = pd.DataFrame(
+        {
+            "time": [1.0, 1.0],
+            "trajid": [1, 2],
+            "x": [0.0, 1.0],
+            "y": 0.0,
+            "z": 0.0,
+            "vx": [2.0, 2.0],
+            "vy": 0.0,
+            "vz": 0.0,
+        }
+    )
     assert frame_diffusion_time(frame, 1.0) == float("inf")
 
 
 def test_frame_turnover_with_area():
-    frame = pd.DataFrame({
-        "time": [1.0, 1.0],
-        "trajid": [1, 2],
-        "x": [0.0, 1.0],
-        "y": 0.0,
-        "z": 0.0,
-        "vx": [2.0, 2.0],
-        "vy": 0.0,
-        "vz": 0.0,
-    })
+    frame = pd.DataFrame(
+        {
+            "time": [1.0, 1.0],
+            "trajid": [1, 2],
+            "x": [0.0, 1.0],
+            "y": 0.0,
+            "z": 0.0,
+            "vx": [2.0, 2.0],
+            "vy": 0.0,
+            "vz": 0.0,
+        }
+    )
     # V=10, L=2, A=5, U=2 => Q=10 => tau=1
-    assert frame_turnover_time(frame, volume=10.0, length_scale=2.0,
-                              cross_sectional_area=5.0) == pytest.approx(1.0)
+    assert frame_turnover_time(
+        frame, volume=10.0, length_scale=2.0, cross_sectional_area=5.0
+    ) == pytest.approx(1.0)
 
 
 def test_diffusion_coefficient_with_dt():

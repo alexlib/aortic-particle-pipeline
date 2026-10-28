@@ -92,7 +92,9 @@ def brownian_trajectory(
     rng = np.random.default_rng(seed)
     sigma = np.sqrt(2.0 * diffusivity * dt)
     increments = rng.normal(scale=sigma, size=(n_steps, dims))
-    positions = np.concatenate([np.zeros((1, dims)), np.cumsum(increments, axis=0)], axis=0)
+    positions = np.concatenate(
+        [np.zeros((1, dims)), np.cumsum(increments, axis=0)], axis=0
+    )
     times = np.arange(n_steps + 1, dtype=float) * dt
     frame = pd.DataFrame(
         {
@@ -139,7 +141,9 @@ def poiseuille_like_frame(
     length_scale = 1.0
     expected = GroundTruth(
         advection_time=length_scale / mean_speed,
-        diffusion_time=(3.0 * length_scale / fluctuation) if fluctuation > 0 else float("inf"),
+        diffusion_time=(3.0 * length_scale / fluctuation)
+        if fluctuation > 0
+        else float("inf"),
     )
     return frame, expected
 
@@ -174,8 +178,8 @@ def turnover_frame(
 
 __all__ = [
     "GroundTruth",
-    "uniform_translation_trajectories",
     "brownian_trajectory",
     "poiseuille_like_frame",
     "turnover_frame",
+    "uniform_translation_trajectories",
 ]
